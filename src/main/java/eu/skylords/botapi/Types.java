@@ -223,11 +223,7 @@ public class Types {
 
         @Override
         public String toString() {
-            return "Card{" +
-                    "cardId=" + cardId +
-                    ", cardTemplate=" + cardTemplate +
-                    ", upgrade=" + upgrade +
-                    '}';
+            return cardTemplate + "[" + upgrade + "]";
         }
     }
 
@@ -303,40 +299,21 @@ public class Types {
                 this.cards.addAll(cards);
             }
 
-            int sizeBefore = this.cards.size();
             Set<CardTemplate> seenBefore = new HashSet<>();
             this.cards = cards.stream()
-                    .filter(x -> seenBefore.add(x.cardTemplate))
+                    .map(x -> {
+                        if (!CardTemplate.NotACard.equals(x.cardTemplate) && !seenBefore.add(x.cardTemplate)) {
+                            System.out.println("Removed duplicate card from deck. A specific card can only be used once in a deck!");
+                            return new Card(CardTemplate.NotACard);
+                        } else {
+                            return x;
+                        }
+                    })
                     .collect(Collectors.toList());
-            if (sizeBefore > this.cards.size()) {
-                System.out.println("Removed duplicate cards from deck. A specific card can only be used once in a deck!");
-            }
 
             while (this.cards.size() < 20) {
                 cards.add(new Card(CardTemplate.NotACard));
             }
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            Deck deck = (Deck) o;
-            return getCoverCardIndex() == deck.getCoverCardIndex() && Objects.equals(getName(), deck.getName()) && Objects.equals(getCards(), deck.getCards());
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(getName(), getCoverCardIndex(), getCards());
-        }
-
-        @Override
-        public String toString() {
-            return "Deck{" +
-                    "name='" + name + '\'' +
-                    ", coverCardIndex=" + coverCardIndex +
-                    ", cards=" + cards +
-                    '}';
         }
     }
 

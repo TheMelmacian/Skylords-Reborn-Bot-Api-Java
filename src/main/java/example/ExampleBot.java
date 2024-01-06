@@ -49,6 +49,7 @@ public class ExampleBot implements Bot {
 
     @Override
     public void prepareForBattle(Types.Prepare prepare) {
+        System.out.printf("Bot[%s]: Preparing for battle...%n", name);
         selectedDeck = decks.stream()
                 .filter(d -> Objects.equals(d.getName(), prepare.getDeck()))
                 .findFirst()
@@ -77,7 +78,7 @@ public class ExampleBot implements Bot {
 
         entities.getPowerSlots().stream()
                 .map(PowerSlot::getEntity)
-                .filter(ps -> ps.getPlayerEntityId().equals(myId))
+                .filter(ps -> ps.getPlayerEntityId() != null && ps.getPlayerEntityId().equals(myId))
                 .forEach(ps -> {
                     System.out.printf("Bot[%s]: I own a Power slot: %d at %s/%s%n", name, ps.getId().value(), ps.getPosition().getX(), ps.getPosition().getZ());
                     myStartPosition = ps.getPosition().toPosition2d();
@@ -85,7 +86,7 @@ public class ExampleBot implements Bot {
 
         entities.getTokenSlots().stream()
                 .map(TokenSlot::getEntity)
-                .filter(ps -> ps.getPlayerEntityId().equals(myId))
+                .filter(ps -> ps.getPlayerEntityId() != null && ps.getPlayerEntityId().equals(myId))
                 .forEach(ps -> System.out.printf("Bot[%s]: Power slot: %d at %s/%s%n", name, ps.getId().value(), ps.getPosition().getX(), ps.getPosition().getZ()));
     }
 
