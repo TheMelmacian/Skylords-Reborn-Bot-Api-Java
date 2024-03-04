@@ -145,6 +145,11 @@ public class ExampleBot implements Bot {
         }
     }
 
+    @Override
+    public void onEnd() {
+        System.out.printf("Bot[%s]: The match ended.%n", name);
+    }
+
     // -----------------------------------------------------------------------------------
 
     private Command spawnUnit(float myPower) {

@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 
 public class Types {
     public static class ApiVersion {
-        public static final long VERSION = 15;
+        public static final long VERSION = 16;
     }
 
     private Types() {
@@ -239,7 +239,7 @@ public class Types {
         @JsonProperty(value = "cover_card_index", required = true)
         private int coverCardIndex;
         /** List of 20 cards in deck. Fill empty spaces with `NotACard`. */
-        @JsonProperty
+        @JsonProperty(required = true)
         private List<Card> cards;
 
         public Deck() {}
@@ -597,7 +597,7 @@ public class Types {
         private TickCount tickWaitDuration;
         @JsonProperty(value = "ticks_left", required = true)
         private TickCount ticksLeft;
-        @JsonProperty(value = "tick_damage")
+        @JsonProperty(value = "tick_damage", required = true)
         private float tickDamage;
 
         @Override
@@ -628,15 +628,15 @@ public class Types {
     }
 
     public static final class AbilityEffectSpecificLinkedFire implements AbilityEffectSpecific {
-        @JsonProperty(value = "linked")
+        @JsonProperty(value = "linked", required = true)
         private boolean linked;
-        @JsonProperty(value = "fighting")
+        @JsonProperty(value = "fighting", required = true)
         private boolean fighting;
-        @JsonProperty(value = "fast_cast")
+        @JsonProperty(value = "fast_cast", required = true)
         private int fastCast;
-        @JsonProperty(value = "support_cap")
+        @JsonProperty(value = "support_cap", required = true)
         private short supportCap;
-        @JsonProperty(value = "support_production")
+        @JsonProperty(value = "support_production", required = true)
         private byte supportProduction;
 
         @Override
@@ -3991,8 +3991,6 @@ public class Types {
         @JsonProperty(value = "unit_size", required = true)
         private byte unitSize;
         @JsonProperty(value = "move_mode", required = true)
-        // TODO: Is this the same as WalKMode?
-        //  Without enum it will be hard do determine the differences between different modes/numbers
         private byte moveMode;
 
         public Entity getEntity() {
@@ -5026,7 +5024,10 @@ public class Types {
         }
     }
 
-    /** All the different commands a bot can issue. */
+    /**
+     * All the different commands a bot can issue.
+     * For spectating bots all commands except Ping and WhisperToMaster are ignored.
+     */
     public static class CommandHolder {
         /** Play card of building type. */
         @JsonProperty(value = "BuildHouse")
@@ -5500,7 +5501,7 @@ public class Types {
         }
     }
 
-    /** The spell does not exist */
+    /** Spell with given ID does not exist */
     public static final class CommandRejectionReasonSpellDoesNotExist implements CommandRejectionReason {
         @Override
         @JsonIgnore
@@ -5559,7 +5560,7 @@ public class Types {
         }
     }
 
-    /** Bot issued command for entity it does not own */
+    /** Bot issued command for an entity that is not owned by anyone */
     public static final class CommandRejectionReasonEntityNotOwned implements CommandRejectionReason {
         @Override
         @JsonIgnore
@@ -5632,7 +5633,7 @@ public class Types {
         @JsonProperty(value = "NotEnoughPower")
         @JsonInclude(JsonInclude.Include.NON_NULL)
         private CommandRejectionReasonNotEnoughPower notEnoughPower;
-        /** Player did not have enough power to play the card or activate the ability */
+        /** Spell with given ID does not exist */
         @JsonProperty(value = "SpellDoesNotExist")
         @JsonInclude(JsonInclude.Include.NON_NULL)
         private CommandRejectionReasonSpellDoesNotExist spellDoesNotExist;
@@ -5648,7 +5649,7 @@ public class Types {
         @JsonProperty(value = "CanNotCast")
         @JsonInclude(JsonInclude.Include.NON_NULL)
         private CommandRejectionReasonCanNotCast canNotCast;
-        /** Bot issued command for entity it does not own */
+        /** Bot issued command for an entity that is not owned by anyone */
         @JsonProperty(value = "EntityNotOwned")
         @JsonInclude(JsonInclude.Include.NON_NULL)
         private CommandRejectionReasonEntityNotOwned entityNotOwned;
@@ -5906,7 +5907,10 @@ public class Types {
 
     /** Used in `/start` endpoint. */
     public static class GameStartState {
-        /** Tells the bot which player it is supposed to control. */
+        /**
+         * Tells the bot which player it is supposed to control.
+         * If bot is only spectating, this is the ID of player that it is spectating for.
+         */
         @JsonProperty(value = "your_player_id", required = true)
         private EntityId yourPlayerId;
         /** Players in the match. */

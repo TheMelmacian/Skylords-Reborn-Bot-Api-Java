@@ -46,6 +46,14 @@ public interface Bot {
     List<Command> onTick(GameState tick);
 
     /**
+     * Called on the end of a match.
+     * Can be used for any cleanup tasks after a match has ended.
+     */
+    default void onEnd() {
+        // mo action necessary
+    }
+
+    /**
      * Called on {@link BotServer server} startup.
      * Can be used for any necessary initialization.
      */

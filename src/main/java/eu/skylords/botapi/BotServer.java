@@ -1,8 +1,8 @@
 package eu.skylords.botapi;
 
-import eu.skylords.botapi.Bot;
 import eu.skylords.botapi.Types.*;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -109,6 +109,15 @@ public class BotServer {
                 .stream()
                 .map(CommandHolder::new)
                 .collect(Collectors.toList());
+    }
+
+    @GET
+    @Path("/end")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response end() {
+        bot.onEnd();
+        return Response.ok().build();
     }
 
     public int getPort() {

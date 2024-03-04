@@ -575,7 +575,13 @@ public enum CardTemplate {
     RavenArchwalker(1687),
     WorldbreakerGunPromo(1688),
     SleetStorm(1689),
-    Soulstone(1690);
+    Soulstone(1690),
+    TectonicShift(1691),
+    GateOfAkylos(1692),
+    LostManabeast(1693),
+
+    BedrockAFrost(1695),
+    BedrockAShadow(1696);
 
     // ----------------------------------------------------------------------
     public final int id;
