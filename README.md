@@ -22,6 +22,7 @@ and the ``Bot.java`` interface as a blueprint for a Bot implementation.
 - [C#](https://gitlab.com/skylords-reborn/skylords-reborn-bot-api-c-sharp)
 - [C++](https://gitlab.com/skylords-reborn/skylords-reborn-bot-api-cplusplus)
 - [Python](https://gitlab.com/skylords-reborn/skylords-reborn-bot-api-python)
+- [Java](https://github.com/TheMelmacian/Skylords-Reborn-Bot-Api-Java)
 
 ## How to Contribute
 

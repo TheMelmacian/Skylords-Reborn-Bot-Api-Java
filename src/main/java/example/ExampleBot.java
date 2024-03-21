@@ -1,9 +1,6 @@
 package example;
 
-import eu.skylords.botapi.Bot;
-import eu.skylords.botapi.CardTemplate;
-import eu.skylords.botapi.Maps;
-import eu.skylords.botapi.Types;
+import eu.skylords.botapi.*;
 import eu.skylords.botapi.Types.*;
 
 import java.util.*;
@@ -15,7 +12,7 @@ public class ExampleBot implements Bot {
 
     private final String name = "JavaExampleBot";
     private final List<MapInfo> supportedMaps = List.of();
-    private final Set<Deck> decks = new HashSet<>();
+    private Deck[] decks = new Deck[]{};
 
     Deck selectedDeck;
     private byte myTeam;
@@ -35,12 +32,11 @@ public class ExampleBot implements Bot {
     public AiForMap sayHello(Types.ApiHello hello) {
         System.out.printf("Bot[%s]: Game sent a friendly 'Hello'%n", name);
 
-        decks.clear();
-        if (isMapSupported(hello.getMapInfo())) {
-            switch (hello.getMapInfo().getMap()) {
-                case Maps.LajeshSpectator -> decks.add(TUTORIAL_DECK);
-                case Maps.YrmiaSpectator, Maps.FyreSpectator -> decks.addAll(List.of(TAINTED_FLORA, TUTORIAL_DECK));
-                default -> decks.add(TAINTED_FLORA);
+        if (isMapSupported(hello.getMap())) {
+            switch (hello.getMap().getMap()) {
+                case Maps.LajeshSpectator -> decks = new Deck[]{TUTORIAL_DECK};
+                case Maps.YrmiaSpectator, Maps.FyreSpectator -> decks = new Deck[]{TAINTED_FLORA, TUTORIAL_DECK};
+                default -> decks = new Deck[]{TAINTED_FLORA};
             }
         }
 
@@ -50,7 +46,7 @@ public class ExampleBot implements Bot {
     @Override
     public void prepareForBattle(Types.Prepare prepare) {
         System.out.printf("Bot[%s]: Preparing for battle...%n", name);
-        selectedDeck = decks.stream()
+        selectedDeck = Arrays.stream(decks)
                 .filter(d -> Objects.equals(d.getName(), prepare.getDeck()))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("Game selected unknown Deck " + prepare.getDeck()));
@@ -66,25 +62,25 @@ public class ExampleBot implements Bot {
         System.out.printf("Bot[%s]: My player ID is: %d, I will play with deck: %s%n", name, myId.value(), selectedDeck.getName());
 
 
-        state.getPlayers().stream()
+        Arrays.stream(state.getPlayers())
                 .filter(p -> myId.equals(p.getEntity().getId()))
                 .findFirst()
                 .ifPresent(entity -> myTeam = entity.getEntity().getTeam());
 
-        oponents = state.getPlayers().stream()
+        oponents = Arrays.stream(state.getPlayers())
                         .filter(p -> p.getEntity().getTeam() != myTeam)
                         .map(p -> p.getEntity().getId())
                         .collect(Collectors.toList());
 
-        entities.getPowerSlots().stream()
+        Arrays.stream(entities.getPowerSlots())
                 .map(PowerSlot::getEntity)
                 .filter(ps -> ps.getPlayerEntityId() != null && ps.getPlayerEntityId().equals(myId))
                 .forEach(ps -> {
                     System.out.printf("Bot[%s]: I own a Power slot: %d at %s/%s%n", name, ps.getId().value(), ps.getPosition().getX(), ps.getPosition().getZ());
-                    myStartPosition = ps.getPosition().toPosition2d();
+                    myStartPosition = Helpers.To2D(ps.getPosition());
                 });
 
-        entities.getTokenSlots().stream()
+        Arrays.stream(entities.getTokenSlots())
                 .map(TokenSlot::getEntity)
                 .filter(ps -> ps.getPlayerEntityId() != null && ps.getPlayerEntityId().equals(myId))
                 .forEach(ps -> System.out.printf("Bot[%s]: Power slot: %d at %s/%s%n", name, ps.getId().value(), ps.getPosition().getX(), ps.getPosition().getZ()));
@@ -95,23 +91,20 @@ public class ExampleBot implements Bot {
         var currentTick = state.getCurrentTick();
         var entities = state.getEntities();
 
-        var myArmy = entities.getSquads()
-                .stream()
+        var myArmy = Arrays.stream(entities.getSquads())
                 .map(Squad::getEntity)
                 .filter(e -> e.getPlayerEntityId().equals(myId))
                 .map(Entity::getId)
                 .collect(Collectors.toList());
 
-        var target = entities.getTokenSlots()
-                .stream()
+        var target = Arrays.stream(entities.getTokenSlots())
                 .map(TokenSlot::getEntity)
                 .filter(e -> e.getPlayerEntityId() != null && oponents.contains(e.getPlayerEntityId()))
                 .map(Entity::getId)
                 .findAny()
                 .orElse(new EntityId(0));
 
-        var myPower = state.getPlayers()
-                .stream()
+        var myPower = Arrays.stream(state.getPlayers())
                 .filter(p -> p.getId().equals(myId))
                 .map(PlayerEntity::getPower)
                 .findFirst()
@@ -168,9 +161,12 @@ public class ExampleBot implements Bot {
     }
 
     private Command attack(EntityId target, List<EntityId> squads) {
-        return target.value() != 0
-            ? new CommandGroupAttack(squads,target,false)
-            : null;
+        if (target.value() != 0 && !squads.isEmpty()) {
+            EntityId[] squadsArray = new EntityId[squads.size()];
+            return new CommandGroupAttack(squads.toArray(squadsArray), target,false);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -195,55 +191,55 @@ public class ExampleBot implements Bot {
 
     private static final Deck TUTORIAL_DECK = new Deck(
             "Tutorial",
-            3,
-            List.of(
-                new Card(CardTemplate.MasterArchers, Upgrade.U3),
-                new Card(CardTemplate.Northguards, Upgrade.U3),
-                new Card(CardTemplate.Eruption, Upgrade.U3),
-                new Card(CardTemplate.CannonTower, Upgrade.U3),
-                new Card(CardTemplate.FireStalker, Upgrade.U3),
-                new Card(CardTemplate.MagmaHurler, Upgrade.U3),
-                new Card(CardTemplate.Tremor, Upgrade.U3),
-                new Card(CardTemplate.NotACard),
-                new Card(CardTemplate.NotACard),
-                new Card(CardTemplate.NotACard),
-                new Card(CardTemplate.NotACard),
-                new Card(CardTemplate.NotACard),
-                new Card(CardTemplate.NotACard),
-                new Card(CardTemplate.NotACard),
-                new Card(CardTemplate.NotACard),
-                new Card(CardTemplate.NotACard),
-                new Card(CardTemplate.NotACard),
-                new Card(CardTemplate.NotACard),
-                new Card(CardTemplate.NotACard),
-                new Card(CardTemplate.NotACard)
-            )
+            (byte) 3,
+            new CardId[]{
+                Helpers.Card(CardTemplate.MasterArchers, Upgrade.U3),
+                Helpers.Card(CardTemplate.Northguards, Upgrade.U3),
+                Helpers.Card(CardTemplate.Eruption, Upgrade.U3),
+                Helpers.Card(CardTemplate.CannonTower, Upgrade.U3),
+                Helpers.Card(CardTemplate.FireStalker, Upgrade.U3),
+                Helpers.Card(CardTemplate.MagmaHurler, Upgrade.U3),
+                Helpers.Card(CardTemplate.Tremor, Upgrade.U3),
+                Helpers.Card(CardTemplate.NotACard),
+                Helpers.Card(CardTemplate.NotACard),
+                Helpers.Card(CardTemplate.NotACard),
+                Helpers.Card(CardTemplate.NotACard),
+                Helpers.Card(CardTemplate.NotACard),
+                Helpers.Card(CardTemplate.NotACard),
+                Helpers.Card(CardTemplate.NotACard),
+                Helpers.Card(CardTemplate.NotACard),
+                Helpers.Card(CardTemplate.NotACard),
+                Helpers.Card(CardTemplate.NotACard),
+                Helpers.Card(CardTemplate.NotACard),
+                Helpers.Card(CardTemplate.NotACard),
+                Helpers.Card(CardTemplate.NotACard)
+            }
     );
 
     private static final Deck TAINTED_FLORA = new Deck(
             "TaintedFlora",
-            0,
-            List.of(
-                new Card(CardTemplate.Swiftclaw, Upgrade.U3),
-                new Card(CardTemplate.DryadAFrost, Upgrade.U3),
-                new Card(CardTemplate.Windweavers, Upgrade.U3),
-                new Card(CardTemplate.Shaman, Upgrade.U3),
-                new Card(CardTemplate.Spearmen, Upgrade.U3),
-                new Card(CardTemplate.EnsnaringRoots, Upgrade.U3),
-                new Card(CardTemplate.Hurricane, Upgrade.U3),
-                new Card(CardTemplate.SurgeOfLight, Upgrade.U3),
-                new Card(CardTemplate.NastySurprise, Upgrade.U3),
-                new Card(CardTemplate.DarkelfAssassins, Upgrade.U3),
-                new Card(CardTemplate.Nightcrawler, Upgrade.U3),
-                new Card(CardTemplate.AmiiPaladins, Upgrade.U3),
-                new Card(CardTemplate.AmiiPhantom, Upgrade.U3),
-                new Card(CardTemplate.Burrower, Upgrade.U3),
-                new Card(CardTemplate.ShadowPhoenix, Upgrade.U3),
-                new Card(CardTemplate.AuraofCorruption, Upgrade.U3),
-                new Card(CardTemplate.Tranquility, Upgrade.U3),
-                new Card(CardTemplate.CurseofOink, Upgrade.U3),
-                new Card(CardTemplate.CultistMaster, Upgrade.U3),
-                new Card(CardTemplate.AshbonePyro, Upgrade.U3)
-            )
+            (byte) 0,
+            new CardId[]{
+                Helpers.Card(CardTemplate.Swiftclaw, Upgrade.U3),
+                Helpers.Card(CardTemplate.DryadAFrost, Upgrade.U3),
+                Helpers.Card(CardTemplate.Windweavers, Upgrade.U3),
+                Helpers.Card(CardTemplate.Shaman, Upgrade.U3),
+                Helpers.Card(CardTemplate.Spearmen, Upgrade.U3),
+                Helpers.Card(CardTemplate.EnsnaringRoots, Upgrade.U3),
+                Helpers.Card(CardTemplate.Hurricane, Upgrade.U3),
+                Helpers.Card(CardTemplate.SurgeOfLight, Upgrade.U3),
+                Helpers.Card(CardTemplate.NastySurprise, Upgrade.U3),
+                Helpers.Card(CardTemplate.DarkelfAssassins, Upgrade.U3),
+                Helpers.Card(CardTemplate.Nightcrawler, Upgrade.U3),
+                Helpers.Card(CardTemplate.AmiiPaladins, Upgrade.U3),
+                Helpers.Card(CardTemplate.AmiiPhantom, Upgrade.U3),
+                Helpers.Card(CardTemplate.Burrower, Upgrade.U3),
+                Helpers.Card(CardTemplate.ShadowPhoenix, Upgrade.U3),
+                Helpers.Card(CardTemplate.AuraofCorruption, Upgrade.U3),
+                Helpers.Card(CardTemplate.Tranquility, Upgrade.U3),
+                Helpers.Card(CardTemplate.CurseofOink, Upgrade.U3),
+                Helpers.Card(CardTemplate.CultistMaster, Upgrade.U3),
+                Helpers.Card(CardTemplate.AshbonePyro, Upgrade.U3)
+            }
     );
 }
