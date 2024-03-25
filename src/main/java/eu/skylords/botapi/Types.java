@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 
 public class Types {
     public static class ApiVersion {
-        public static final long VERSION = 17;
+        public static final long VERSION = 18;
     }
 
     private Types() {
@@ -893,6 +893,11 @@ public class Types {
         DamageArea,
         DamageOverTime,
         LinkedFire,
+        SpellOnEntityNearby,
+        TimedSpell,
+        Collector,
+        Aura,
+        MovingIntervalCast,
         Other;
     }
     /** Marker fo all AbilityEffectSpecific implementations */
@@ -981,6 +986,111 @@ public class Types {
             this.support_production = support_production;
         }
     }
+    public static final class AbilityEffectSpecificSpellOnEntityNearby implements  AbilityEffectSpecific {
+        @JsonProperty(required = true)
+        private SpellId[] spell_on_owner;
+        @JsonProperty(required = true)
+        private SpellId[] spell_on_source;
+        @JsonProperty(required = true)
+        private float radius;
+        @JsonProperty(required = true)
+        private int remaining_targets;
+        @Override
+        @JsonIgnore
+        public AbilityEffectSpecificType getType() { return AbilityEffectSpecificType.SpellOnEntityNearby; }
+        public SpellId[] getSpellOnOwner() { return spell_on_owner; }
+        public void setSpellOnOwner(SpellId[] v) { this.spell_on_owner = v; }
+        public SpellId[] getSpellOnSource() { return spell_on_source; }
+        public void setSpellOnSource(SpellId[] v) { this.spell_on_source = v; }
+        public float getRadius() { return radius; }
+        public void setRadius(float v) { this.radius = v; }
+        public int getRemainingTargets() { return remaining_targets; }
+        public void setRemainingTargets(int v) { this.remaining_targets = v; }
+        public AbilityEffectSpecificSpellOnEntityNearby() { }
+        public AbilityEffectSpecificSpellOnEntityNearby(SpellId[] spell_on_owner, SpellId[] spell_on_source, float radius, int remaining_targets) {
+            this.spell_on_owner = spell_on_owner;
+            this.spell_on_source = spell_on_source;
+            this.radius = radius;
+            this.remaining_targets = remaining_targets;
+        }
+    }
+    public static final class AbilityEffectSpecificTimedSpell implements  AbilityEffectSpecific {
+        @JsonProperty(required = true)
+        private SpellId[] spells_to_cast;
+        @Override
+        @JsonIgnore
+        public AbilityEffectSpecificType getType() { return AbilityEffectSpecificType.TimedSpell; }
+        public SpellId[] getSpellsToCast() { return spells_to_cast; }
+        public void setSpellsToCast(SpellId[] v) { this.spells_to_cast = v; }
+        public AbilityEffectSpecificTimedSpell() { }
+        public AbilityEffectSpecificTimedSpell(SpellId[] spells_to_cast) {
+            this.spells_to_cast = spells_to_cast;
+        }
+    }
+    public static final class AbilityEffectSpecificCollector implements  AbilityEffectSpecific {
+        @JsonProperty(required = true)
+        private SpellId spell_to_cast;
+        @JsonProperty(required = true)
+        private float radius;
+        @Override
+        @JsonIgnore
+        public AbilityEffectSpecificType getType() { return AbilityEffectSpecificType.Collector; }
+        public SpellId getSpellToCast() { return spell_to_cast; }
+        public void setSpellToCast(SpellId v) { this.spell_to_cast = v; }
+        public float getRadius() { return radius; }
+        public void setRadius(float v) { this.radius = v; }
+        public AbilityEffectSpecificCollector() { }
+        public AbilityEffectSpecificCollector(SpellId spell_to_cast, float radius) {
+            this.spell_to_cast = spell_to_cast;
+            this.radius = radius;
+        }
+    }
+    public static final class AbilityEffectSpecificAura implements  AbilityEffectSpecific {
+        @JsonProperty(required = true)
+        private SpellId[] spells_to_apply;
+        @JsonProperty(required = true)
+        private AbilityId[] abilities_to_apply;
+        @JsonProperty(required = true)
+        private float radius;
+        @Override
+        @JsonIgnore
+        public AbilityEffectSpecificType getType() { return AbilityEffectSpecificType.Aura; }
+        public SpellId[] getSpellsToApply() { return spells_to_apply; }
+        public void setSpellsToApply(SpellId[] v) { this.spells_to_apply = v; }
+        public AbilityId[] getAbilitiesToApply() { return abilities_to_apply; }
+        public void setAbilitiesToApply(AbilityId[] v) { this.abilities_to_apply = v; }
+        public float getRadius() { return radius; }
+        public void setRadius(float v) { this.radius = v; }
+        public AbilityEffectSpecificAura() { }
+        public AbilityEffectSpecificAura(SpellId[] spells_to_apply, AbilityId[] abilities_to_apply, float radius) {
+            this.spells_to_apply = spells_to_apply;
+            this.abilities_to_apply = abilities_to_apply;
+            this.radius = radius;
+        }
+    }
+    public static final class AbilityEffectSpecificMovingIntervalCast implements  AbilityEffectSpecific {
+        @JsonProperty(required = true)
+        private SpellId[] spell_to_cast;
+        @JsonProperty(required = true)
+        private Position2D direction_step;
+        @JsonProperty(required = true)
+        private TickCount cast_every_nth_tick;
+        @Override
+        @JsonIgnore
+        public AbilityEffectSpecificType getType() { return AbilityEffectSpecificType.MovingIntervalCast; }
+        public SpellId[] getSpellToCast() { return spell_to_cast; }
+        public void setSpellToCast(SpellId[] v) { this.spell_to_cast = v; }
+        public Position2D getDirectionStep() { return direction_step; }
+        public void setDirectionStep(Position2D v) { this.direction_step = v; }
+        public TickCount getCastEveryNthTick() { return cast_every_nth_tick; }
+        public void setCastEveryNthTick(TickCount v) { this.cast_every_nth_tick = v; }
+        public AbilityEffectSpecificMovingIntervalCast() { }
+        public AbilityEffectSpecificMovingIntervalCast(SpellId[] spell_to_cast, Position2D direction_step, TickCount cast_every_nth_tick) {
+            this.spell_to_cast = spell_to_cast;
+            this.direction_step = direction_step;
+            this.cast_every_nth_tick = cast_every_nth_tick;
+        }
+    }
     /**  If you think something interesting got hidden by Other report it */
     public static final class AbilityEffectSpecificOther implements  AbilityEffectSpecific {
         @Override
@@ -999,6 +1109,21 @@ public class Types {
         @JsonProperty(value = "LinkedFire")
         @JsonInclude(JsonInclude.Include.NON_NULL)
         private AbilityEffectSpecificLinkedFire linkedFire;
+        @JsonProperty(value = "SpellOnEntityNearby")
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        private AbilityEffectSpecificSpellOnEntityNearby spellOnEntityNearby;
+        @JsonProperty(value = "TimedSpell")
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        private AbilityEffectSpecificTimedSpell timedSpell;
+        @JsonProperty(value = "Collector")
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        private AbilityEffectSpecificCollector collector;
+        @JsonProperty(value = "Aura")
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        private AbilityEffectSpecificAura aura;
+        @JsonProperty(value = "MovingIntervalCast")
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        private AbilityEffectSpecificMovingIntervalCast movingIntervalCast;
         /**  If you think something interesting got hidden by Other report it */
         @JsonProperty(value = "Other")
         @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -1013,6 +1138,21 @@ public class Types {
             }
             else if (linkedFire != null) {
                 return linkedFire;
+            }
+            else if (spellOnEntityNearby != null) {
+                return spellOnEntityNearby;
+            }
+            else if (timedSpell != null) {
+                return timedSpell;
+            }
+            else if (collector != null) {
+                return collector;
+            }
+            else if (aura != null) {
+                return aura;
+            }
+            else if (movingIntervalCast != null) {
+                return movingIntervalCast;
             }
             else if (other != null) {
                 return other;
@@ -1034,6 +1174,21 @@ public class Types {
                 case AbilityEffectSpecificType.LinkedFire:
                     this.linkedFire = (AbilityEffectSpecificLinkedFire) v;
                     break;
+                case AbilityEffectSpecificType.SpellOnEntityNearby:
+                    this.spellOnEntityNearby = (AbilityEffectSpecificSpellOnEntityNearby) v;
+                    break;
+                case AbilityEffectSpecificType.TimedSpell:
+                    this.timedSpell = (AbilityEffectSpecificTimedSpell) v;
+                    break;
+                case AbilityEffectSpecificType.Collector:
+                    this.collector = (AbilityEffectSpecificCollector) v;
+                    break;
+                case AbilityEffectSpecificType.Aura:
+                    this.aura = (AbilityEffectSpecificAura) v;
+                    break;
+                case AbilityEffectSpecificType.MovingIntervalCast:
+                    this.movingIntervalCast = (AbilityEffectSpecificMovingIntervalCast) v;
+                    break;
                 case AbilityEffectSpecificType.Other:
                     this.other = (AbilityEffectSpecificOther) v;
                     break;
@@ -1043,6 +1198,11 @@ public class Types {
         public AbilityEffectSpecificDamageArea getDamageArea() { return damageArea; }
         public AbilityEffectSpecificDamageOverTime getDamageOverTime() { return damageOverTime; }
         public AbilityEffectSpecificLinkedFire getLinkedFire() { return linkedFire; }
+        public AbilityEffectSpecificSpellOnEntityNearby getSpellOnEntityNearby() { return spellOnEntityNearby; }
+        public AbilityEffectSpecificTimedSpell getTimedSpell() { return timedSpell; }
+        public AbilityEffectSpecificCollector getCollector() { return collector; }
+        public AbilityEffectSpecificAura getAura() { return aura; }
+        public AbilityEffectSpecificMovingIntervalCast getMovingIntervalCast() { return movingIntervalCast; }
         public AbilityEffectSpecificOther getOther() { return other; }
     }
 
