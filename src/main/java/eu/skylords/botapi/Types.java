@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 
 public class Types {
     public static class ApiVersion {
-        public static final long VERSION = 18;
+        public static final long VERSION = 19;
     }
 
     private Types() {
@@ -811,8 +811,6 @@ public class Types {
         @JsonProperty(required = true)
         private Position2D end;
         @JsonProperty(required = true)
-        private float radius;
-        @JsonProperty(required = true)
         private float width;
         @Override
         @JsonIgnore
@@ -821,15 +819,12 @@ public class Types {
         public void setStart(Position2D v) { this.start = v; }
         public Position2D getEnd() { return end; }
         public void setEnd(Position2D v) { this.end = v; }
-        public float getRadius() { return radius; }
-        public void setRadius(float v) { this.radius = v; }
         public float getWidth() { return width; }
         public void setWidth(float v) { this.width = v; }
         public AreaShapeWideLine() { }
-        public AreaShapeWideLine(Position2D start, Position2D end, float radius, float width) {
+        public AreaShapeWideLine(Position2D start, Position2D end, float width) {
             this.start = start;
             this.end = end;
-            this.radius = radius;
             this.width = width;
         }
     }
