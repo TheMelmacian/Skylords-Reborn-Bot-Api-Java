@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 
 public class Types {
     public static class ApiVersion {
-        public static final long VERSION = 20;
+        public static final long VERSION = 21;
     }
 
     private Types() {
