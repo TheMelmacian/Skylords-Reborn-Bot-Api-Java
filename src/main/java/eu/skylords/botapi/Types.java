@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 
 public class Types {
     public static class ApiVersion {
-        public static final long VERSION = 19;
+        public static final long VERSION = 20;
     }
 
     private Types() {
@@ -1257,6 +1257,217 @@ public class Types {
         }
     }
 
+    public enum MountStateType {
+        Unmounted,
+        MountingSquad,
+        MountingFigure,
+        MountedSquad,
+        MountedFigure,
+        Unknown;
+    }
+    /** Marker fo all MountState implementations */
+    public interface MountState extends MultiType<MountStateType> {}
+    /**  not mounted on any barrier (EA's 0) */
+    public static final class MountStateUnmounted implements  MountState {
+        @Override
+        @JsonIgnore
+        public MountStateType getType() { return MountStateType.Unmounted; }
+        /**  not mounted on any barrier (EA's 0) */
+        public MountStateUnmounted() { }
+    }
+    /**  squad in process of mounting to barrier (EA's 1, 2, 3) */
+    public static final class MountStateMountingSquad implements  MountState {
+        @JsonProperty(required = true)
+        private EntityId barrier;
+        @Override
+        @JsonIgnore
+        public MountStateType getType() { return MountStateType.MountingSquad; }
+        public EntityId getBarrier() { return barrier; }
+        public void setBarrier(EntityId v) { this.barrier = v; }
+        /**  squad in process of mounting to barrier (EA's 1, 2, 3) */
+        public MountStateMountingSquad() { }
+        /**  squad in process of mounting to barrier (EA's 1, 2, 3) */
+        public MountStateMountingSquad(EntityId barrier) {
+            this.barrier = barrier;
+        }
+    }
+    /**  figure in process of mounting to barrier (EA's 1, 2, 3) */
+    public static final class MountStateMountingFigure implements  MountState {
+        @JsonProperty(required = true)
+        private EntityId barrier;
+        @JsonProperty(required = true)
+        private byte slot;
+        @Override
+        @JsonIgnore
+        public MountStateType getType() { return MountStateType.MountingFigure; }
+        public EntityId getBarrier() { return barrier; }
+        public void setBarrier(EntityId v) { this.barrier = v; }
+        public byte getSlot() { return slot; }
+        public void setSlot(byte v) { this.slot = v; }
+        /**  figure in process of mounting to barrier (EA's 1, 2, 3) */
+        public MountStateMountingFigure() { }
+        /**  figure in process of mounting to barrier (EA's 1, 2, 3) */
+        public MountStateMountingFigure(EntityId barrier, byte slot) {
+            this.barrier = barrier;
+            this.slot = slot;
+        }
+    }
+    /**  squad mounted to barrier (EA's 4) */
+    public static final class MountStateMountedSquad implements  MountState {
+        @JsonProperty(required = true)
+        private EntityId barrier;
+        @Override
+        @JsonIgnore
+        public MountStateType getType() { return MountStateType.MountedSquad; }
+        public EntityId getBarrier() { return barrier; }
+        public void setBarrier(EntityId v) { this.barrier = v; }
+        /**  squad mounted to barrier (EA's 4) */
+        public MountStateMountedSquad() { }
+        /**  squad mounted to barrier (EA's 4) */
+        public MountStateMountedSquad(EntityId barrier) {
+            this.barrier = barrier;
+        }
+    }
+    /**  figure mounted to barrier (EA's 4) */
+    public static final class MountStateMountedFigure implements  MountState {
+        @JsonProperty(required = true)
+        private EntityId barrier;
+        @JsonProperty(required = true)
+        private byte slot;
+        @Override
+        @JsonIgnore
+        public MountStateType getType() { return MountStateType.MountedFigure; }
+        public EntityId getBarrier() { return barrier; }
+        public void setBarrier(EntityId v) { this.barrier = v; }
+        public byte getSlot() { return slot; }
+        public void setSlot(byte v) { this.slot = v; }
+        /**  figure mounted to barrier (EA's 4) */
+        public MountStateMountedFigure() { }
+        /**  figure mounted to barrier (EA's 4) */
+        public MountStateMountedFigure(EntityId barrier, byte slot) {
+            this.barrier = barrier;
+            this.slot = slot;
+        }
+    }
+    /**  Unknown (EA's 5, 6) please report a bug (ideally with steps to reproduce) */
+    public static final class MountStateUnknown implements  MountState {
+        @JsonProperty(required = true)
+        private byte mount_state;
+        @JsonProperty(required = true)
+        private int enter_exit_barrier_module;
+        @JsonProperty(required = true)
+        private int target_barrier_module;
+        @JsonProperty(required = true)
+        private int current_barrier_module;
+        @JsonProperty(required = true)
+        private int slot;
+        @Override
+        @JsonIgnore
+        public MountStateType getType() { return MountStateType.Unknown; }
+        public byte getMountState() { return mount_state; }
+        public void setMountState(byte v) { this.mount_state = v; }
+        public int getEnterExitBarrierModule() { return enter_exit_barrier_module; }
+        public void setEnterExitBarrierModule(int v) { this.enter_exit_barrier_module = v; }
+        public int getTargetBarrierModule() { return target_barrier_module; }
+        public void setTargetBarrierModule(int v) { this.target_barrier_module = v; }
+        public int getCurrentBarrierModule() { return current_barrier_module; }
+        public void setCurrentBarrierModule(int v) { this.current_barrier_module = v; }
+        public int getSlot() { return slot; }
+        public void setSlot(int v) { this.slot = v; }
+        /**  Unknown (EA's 5, 6) please report a bug (ideally with steps to reproduce) */
+        public MountStateUnknown() { }
+        /**  Unknown (EA's 5, 6) please report a bug (ideally with steps to reproduce) */
+        public MountStateUnknown(byte mount_state, int enter_exit_barrier_module, int target_barrier_module, int current_barrier_module, int slot) {
+            this.mount_state = mount_state;
+            this.enter_exit_barrier_module = enter_exit_barrier_module;
+            this.target_barrier_module = target_barrier_module;
+            this.current_barrier_module = current_barrier_module;
+            this.slot = slot;
+        }
+    }
+    /**  State of entity being mounted (or not) on barrier */
+    public static class MountStateHolder {
+        /**  not mounted on any barrier (EA's 0) */
+        @JsonProperty(value = "Unmounted")
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        private MountStateUnmounted unmounted;
+        /**  squad in process of mounting to barrier (EA's 1, 2, 3) */
+        @JsonProperty(value = "MountingSquad")
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        private MountStateMountingSquad mountingSquad;
+        /**  figure in process of mounting to barrier (EA's 1, 2, 3) */
+        @JsonProperty(value = "MountingFigure")
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        private MountStateMountingFigure mountingFigure;
+        /**  squad mounted to barrier (EA's 4) */
+        @JsonProperty(value = "MountedSquad")
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        private MountStateMountedSquad mountedSquad;
+        /**  figure mounted to barrier (EA's 4) */
+        @JsonProperty(value = "MountedFigure")
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        private MountStateMountedFigure mountedFigure;
+        /**  Unknown (EA's 5, 6) please report a bug (ideally with steps to reproduce) */
+        @JsonProperty(value = "Unknown")
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        private MountStateUnknown unknown;
+        @JsonIgnore
+        public MountState get() {
+            if (unmounted != null) {
+                return unmounted;
+            }
+            else if (mountingSquad != null) {
+                return mountingSquad;
+            }
+            else if (mountingFigure != null) {
+                return mountingFigure;
+            }
+            else if (mountedSquad != null) {
+                return mountedSquad;
+            }
+            else if (mountedFigure != null) {
+                return mountedFigure;
+            }
+            else if (unknown != null) {
+                return unknown;
+            }
+            else {
+                throw new IllegalStateException("MountStateHolder doesn't contain any MountState. Check implementation and API!");
+            }
+        }
+        public MountStateHolder() { }
+        public MountStateHolder(MountState v) {
+            Objects.requireNonNull(v, "MountState must not be null");
+            switch (v.getType()) {
+                case MountStateType.Unmounted:
+                    this.unmounted = (MountStateUnmounted) v;
+                    break;
+                case MountStateType.MountingSquad:
+                    this.mountingSquad = (MountStateMountingSquad) v;
+                    break;
+                case MountStateType.MountingFigure:
+                    this.mountingFigure = (MountStateMountingFigure) v;
+                    break;
+                case MountStateType.MountedSquad:
+                    this.mountedSquad = (MountStateMountedSquad) v;
+                    break;
+                case MountStateType.MountedFigure:
+                    this.mountedFigure = (MountStateMountedFigure) v;
+                    break;
+                case MountStateType.Unknown:
+                    this.unknown = (MountStateUnknown) v;
+                    break;
+                default: throw new IllegalArgumentException("Unknown MountState " + v.getType());
+            }
+        }
+        public MountStateUnmounted getUnmounted() { return unmounted; }
+        public MountStateMountingSquad getMountingSquad() { return mountingSquad; }
+        public MountStateMountingFigure getMountingFigure() { return mountingFigure; }
+        public MountStateMountedSquad getMountedSquad() { return mountedSquad; }
+        public MountStateMountedFigure getMountedFigure() { return mountedFigure; }
+        public MountStateUnknown getUnknown() { return unknown; }
+    }
+
     public enum AspectType {
         PowerProduction,
         Health,
@@ -1411,10 +1622,17 @@ public class Types {
         public AspectTunnel() { }
     }
     public static final class AspectMountBarrier implements  Aspect {
+        @JsonProperty(required = true)
+        private MountStateHolder state;
         @Override
         @JsonIgnore
         public AspectType getType() { return AspectType.MountBarrier; }
+        public MountStateHolder getState() { return state; }
+        public void setState(MountStateHolder v) { this.state = v; }
         public AspectMountBarrier() { }
+        public AspectMountBarrier(MountStateHolder state) {
+            this.state = state;
+        }
     }
     public static final class AspectSpellMemory implements  Aspect {
         @Override
@@ -1538,6 +1756,9 @@ public class Types {
         public AspectType getType() { return AspectType.Roam; }
         public AspectRoam() { }
     }
+    /**  Most of the aspects do not contain data, if you think any of them would contain something,
+     *  and you would want to use it, let me know, and I will add it
+     */
     public static class AspectHolder {
         /**  Used by *mostly* power wells */
         @JsonProperty(value = "PowerProduction")
@@ -3534,6 +3755,11 @@ public class Types {
         ModeChange,
         PowerSlotBuild,
         TokenSlotBuild,
+        GroupKillEntity,
+        GroupSacrifice,
+        PortalDefineExitPoint,
+        PortalRemoveExitPoint,
+        TunnelMakeExitPoint,
         Ping,
         Surrender,
         WhisperToMaster;
@@ -3940,6 +4166,81 @@ public class Types {
             this.color = color;
         }
     }
+    public static final class CommandGroupKillEntity implements  Command {
+        @JsonProperty(required = true)
+        private EntityId[] entities;
+        @Override
+        @JsonIgnore
+        public CommandType getType() { return CommandType.GroupKillEntity; }
+        public EntityId[] getEntities() { return entities; }
+        public void setEntities(EntityId[] v) { this.entities = v; }
+        public CommandGroupKillEntity() { }
+        public CommandGroupKillEntity(EntityId[] entities) {
+            this.entities = entities;
+        }
+    }
+    public static final class CommandGroupSacrifice implements  Command {
+        @JsonProperty(required = true)
+        private EntityId[] squads;
+        @JsonProperty(required = true)
+        private EntityId target;
+        @Override
+        @JsonIgnore
+        public CommandType getType() { return CommandType.GroupSacrifice; }
+        public EntityId[] getSquads() { return squads; }
+        public void setSquads(EntityId[] v) { this.squads = v; }
+        public EntityId getTarget() { return target; }
+        public void setTarget(EntityId v) { this.target = v; }
+        public CommandGroupSacrifice() { }
+        public CommandGroupSacrifice(EntityId[] squads, EntityId target) {
+            this.squads = squads;
+            this.target = target;
+        }
+    }
+    public static final class CommandPortalDefineExitPoint implements  Command {
+        @JsonProperty(required = true)
+        private EntityId portal;
+        @JsonProperty(required = true)
+        private Position2D xy;
+        @Override
+        @JsonIgnore
+        public CommandType getType() { return CommandType.PortalDefineExitPoint; }
+        public EntityId getPortal() { return portal; }
+        public void setPortal(EntityId v) { this.portal = v; }
+        public Position2D getXy() { return xy; }
+        public void setXy(Position2D v) { this.xy = v; }
+        public CommandPortalDefineExitPoint() { }
+        public CommandPortalDefineExitPoint(EntityId portal, Position2D xy) {
+            this.portal = portal;
+            this.xy = xy;
+        }
+    }
+    public static final class CommandPortalRemoveExitPoint implements  Command {
+        @JsonProperty(required = true)
+        private EntityId portal;
+        @Override
+        @JsonIgnore
+        public CommandType getType() { return CommandType.PortalRemoveExitPoint; }
+        public EntityId getPortal() { return portal; }
+        public void setPortal(EntityId v) { this.portal = v; }
+        public CommandPortalRemoveExitPoint() { }
+        public CommandPortalRemoveExitPoint(EntityId portal) {
+            this.portal = portal;
+        }
+    }
+    public static final class CommandTunnelMakeExitPoint implements  Command {
+        @JsonProperty(required = true)
+        private EntityId portal;
+        @Override
+        @JsonIgnore
+        public CommandType getType() { return CommandType.TunnelMakeExitPoint; }
+        public EntityId getPortal() { return portal; }
+        public void setPortal(EntityId v) { this.portal = v; }
+        public CommandTunnelMakeExitPoint() { }
+        public CommandTunnelMakeExitPoint(EntityId portal) {
+            this.portal = portal;
+        }
+    }
     public static final class CommandPing implements  Command {
         @JsonProperty(required = true)
         private Position2D xy;
@@ -4053,6 +4354,21 @@ public class Types {
         @JsonProperty(value = "TokenSlotBuild")
         @JsonInclude(JsonInclude.Include.NON_NULL)
         private CommandTokenSlotBuild tokenSlotBuild;
+        @JsonProperty(value = "GroupKillEntity")
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        private CommandGroupKillEntity groupKillEntity;
+        @JsonProperty(value = "GroupSacrifice")
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        private CommandGroupSacrifice groupSacrifice;
+        @JsonProperty(value = "PortalDefineExitPoint")
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        private CommandPortalDefineExitPoint portalDefineExitPoint;
+        @JsonProperty(value = "PortalRemoveExitPoint")
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        private CommandPortalRemoveExitPoint portalRemoveExitPoint;
+        @JsonProperty(value = "TunnelMakeExitPoint")
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        private CommandTunnelMakeExitPoint tunnelMakeExitPoint;
         @JsonProperty(value = "Ping")
         @JsonInclude(JsonInclude.Include.NON_NULL)
         private CommandPing ping;
@@ -4126,6 +4442,21 @@ public class Types {
             }
             else if (tokenSlotBuild != null) {
                 return tokenSlotBuild;
+            }
+            else if (groupKillEntity != null) {
+                return groupKillEntity;
+            }
+            else if (groupSacrifice != null) {
+                return groupSacrifice;
+            }
+            else if (portalDefineExitPoint != null) {
+                return portalDefineExitPoint;
+            }
+            else if (portalRemoveExitPoint != null) {
+                return portalRemoveExitPoint;
+            }
+            else if (tunnelMakeExitPoint != null) {
+                return tunnelMakeExitPoint;
             }
             else if (ping != null) {
                 return ping;
@@ -4207,6 +4538,21 @@ public class Types {
                 case CommandType.TokenSlotBuild:
                     this.tokenSlotBuild = (CommandTokenSlotBuild) v;
                     break;
+                case CommandType.GroupKillEntity:
+                    this.groupKillEntity = (CommandGroupKillEntity) v;
+                    break;
+                case CommandType.GroupSacrifice:
+                    this.groupSacrifice = (CommandGroupSacrifice) v;
+                    break;
+                case CommandType.PortalDefineExitPoint:
+                    this.portalDefineExitPoint = (CommandPortalDefineExitPoint) v;
+                    break;
+                case CommandType.PortalRemoveExitPoint:
+                    this.portalRemoveExitPoint = (CommandPortalRemoveExitPoint) v;
+                    break;
+                case CommandType.TunnelMakeExitPoint:
+                    this.tunnelMakeExitPoint = (CommandTunnelMakeExitPoint) v;
+                    break;
                 case CommandType.Ping:
                     this.ping = (CommandPing) v;
                     break;
@@ -4240,6 +4586,11 @@ public class Types {
         public CommandModeChange getModeChange() { return modeChange; }
         public CommandPowerSlotBuild getPowerSlotBuild() { return powerSlotBuild; }
         public CommandTokenSlotBuild getTokenSlotBuild() { return tokenSlotBuild; }
+        public CommandGroupKillEntity getGroupKillEntity() { return groupKillEntity; }
+        public CommandGroupSacrifice getGroupSacrifice() { return groupSacrifice; }
+        public CommandPortalDefineExitPoint getPortalDefineExitPoint() { return portalDefineExitPoint; }
+        public CommandPortalRemoveExitPoint getPortalRemoveExitPoint() { return portalRemoveExitPoint; }
+        public CommandTunnelMakeExitPoint getTunnelMakeExitPoint() { return tunnelMakeExitPoint; }
         public CommandPing getPing() { return ping; }
         public CommandSurrender getSurrender() { return surrender; }
         public CommandWhisperToMaster getWhisperToMaster() { return whisperToMaster; }
