@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 
 public class Types {
     public static class ApiVersion {
-        public static final long VERSION = 21;
+        public static final long VERSION = 23;
     }
 
     private Types() {
@@ -4630,30 +4630,23 @@ public class Types {
         }
     }
 
-    public enum WhyCanNotPlayCardThere {
-        DoesNotHaveEnoughPower(0x10),
-        /**  too close to (0,y), or (x,0) */
-        InvalidPosition(0x20),
-        CardCondition(0x80),
-        ConditionPreventCardPlay(0x100),
-        DoesNotHaveThatCard(0x200),
-        DoesNotHaveEnoughOrbs(0x400),
-        CastingTooOften(0x10000);
-
-        //----------------------------------------
-        public final int value;
-        WhyCanNotPlayCardThere(int value) { this.value = value; }
-        @JsonValue
-        public int getValue() { return value; }
-        public static Optional<Upgrade> fromValue(int value) {
-            return Arrays.stream(Upgrade.values())
-                    .filter(u -> u.value == value)
-                    .findFirst();
-        }
-    }
+    /**  Kind of Bit flags
+     *  CanPlay = 0,
+     *  PlayerNotFound = 0x1,
+     *  CardOrSpellDoesNotExist = 0x2,
+     *  DoesNotHaveEnoughPower = 0x10,
+     *  InvalidPosition = 0x20, // too close to (0,y), or (x,0)
+     *  CardCondition = 0x80,
+     *  ConditionPreventCardPlay = 0x100, // searched in up to 50m radius?
+     *  DoesNotHaveThatCard = 0x200,
+     *  DoesNotHaveEnoughOrbs = 0x400,
+     *  NotEnoughPopulation = 0x800,
+     */
+    public record WhyCanNotPlayCardThere(@JsonValue int value) {}
 
     public enum CommandRejectionReasonType {
         CardRejected,
+        CastingTooOften,
         NotEnoughPower,
         SpellDoesNotExist,
         EntityDoesNotExist,
@@ -4688,6 +4681,22 @@ public class Types {
         public CommandRejectionReasonCardRejected(WhyCanNotPlayCardThere reason, int[] failed_card_conditions) {
             this.reason = reason;
             this.failed_card_conditions = failed_card_conditions;
+        }
+    }
+    /**  You need to wait 10 ticks, after playing card, before playing another card */
+    public static final class CommandRejectionReasonCastingTooOften implements  CommandRejectionReason {
+        @JsonProperty(required = true)
+        private Tick cooldown_until;
+        @Override
+        @JsonIgnore
+        public CommandRejectionReasonType getType() { return CommandRejectionReasonType.CastingTooOften; }
+        public Tick getCooldownUntil() { return cooldown_until; }
+        public void setCooldownUntil(Tick v) { this.cooldown_until = v; }
+        /**  You need to wait 10 ticks, after playing card, before playing another card */
+        public CommandRejectionReasonCastingTooOften() { }
+        /**  You need to wait 10 ticks, after playing card, before playing another card */
+        public CommandRejectionReasonCastingTooOften(Tick cooldown_until) {
+            this.cooldown_until = cooldown_until;
         }
     }
     /**  Player did not have enough power to play the card or activate the ability */
@@ -4821,6 +4830,10 @@ public class Types {
         @JsonProperty(value = "CardRejected")
         @JsonInclude(JsonInclude.Include.NON_NULL)
         private CommandRejectionReasonCardRejected cardRejected;
+        /**  You need to wait 10 ticks, after playing card, before playing another card */
+        @JsonProperty(value = "CastingTooOften")
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        private CommandRejectionReasonCastingTooOften castingTooOften;
         /**  Player did not have enough power to play the card or activate the ability */
         @JsonProperty(value = "NotEnoughPower")
         @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -4874,6 +4887,9 @@ public class Types {
             if (cardRejected != null) {
                 return cardRejected;
             }
+            else if (castingTooOften != null) {
+                return castingTooOften;
+            }
             else if (notEnoughPower != null) {
                 return notEnoughPower;
             }
@@ -4921,6 +4937,9 @@ public class Types {
                 case CommandRejectionReasonType.CardRejected:
                     this.cardRejected = (CommandRejectionReasonCardRejected) v;
                     break;
+                case CommandRejectionReasonType.CastingTooOften:
+                    this.castingTooOften = (CommandRejectionReasonCastingTooOften) v;
+                    break;
                 case CommandRejectionReasonType.NotEnoughPower:
                     this.notEnoughPower = (CommandRejectionReasonNotEnoughPower) v;
                     break;
@@ -4961,6 +4980,7 @@ public class Types {
             }
         }
         public CommandRejectionReasonCardRejected getCardRejected() { return cardRejected; }
+        public CommandRejectionReasonCastingTooOften getCastingTooOften() { return castingTooOften; }
         public CommandRejectionReasonNotEnoughPower getNotEnoughPower() { return notEnoughPower; }
         public CommandRejectionReasonSpellDoesNotExist getSpellDoesNotExist() { return spellDoesNotExist; }
         public CommandRejectionReasonEntityDoesNotExist getEntityDoesNotExist() { return entityDoesNotExist; }
