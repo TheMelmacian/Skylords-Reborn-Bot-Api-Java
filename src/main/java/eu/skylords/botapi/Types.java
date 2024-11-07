@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 
 public class Types {
     public static class ApiVersion {
-        public static final long VERSION = 23;
+        public static final long VERSION = 24;
     }
 
     private Types() {
@@ -21,6 +21,7 @@ public class Types {
     public enum Upgrade {
         U0(0),
         U1(1000000),
+        /**  Promo must be U2, do not ask me, that is EA's mystery. */
         U2(2000000),
         U3(3000000);
 
@@ -4646,7 +4647,9 @@ public class Types {
 
     public enum CommandRejectionReasonType {
         CardRejected,
-        CastingTooOften,
+        GlobalCooldown,
+        Cooldown,
+        OutOfChargesCooldown,
         NotEnoughPower,
         SpellDoesNotExist,
         EntityDoesNotExist,
@@ -4684,18 +4687,50 @@ public class Types {
         }
     }
     /**  You need to wait 10 ticks, after playing card, before playing another card */
-    public static final class CommandRejectionReasonCastingTooOften implements  CommandRejectionReason {
+    public static final class CommandRejectionReasonGlobalCooldown implements  CommandRejectionReason {
         @JsonProperty(required = true)
         private Tick cooldown_until;
         @Override
         @JsonIgnore
-        public CommandRejectionReasonType getType() { return CommandRejectionReasonType.CastingTooOften; }
+        public CommandRejectionReasonType getType() { return CommandRejectionReasonType.GlobalCooldown; }
         public Tick getCooldownUntil() { return cooldown_until; }
         public void setCooldownUntil(Tick v) { this.cooldown_until = v; }
         /**  You need to wait 10 ticks, after playing card, before playing another card */
-        public CommandRejectionReasonCastingTooOften() { }
+        public CommandRejectionReasonGlobalCooldown() { }
         /**  You need to wait 10 ticks, after playing card, before playing another card */
-        public CommandRejectionReasonCastingTooOften(Tick cooldown_until) {
+        public CommandRejectionReasonGlobalCooldown(Tick cooldown_until) {
+            this.cooldown_until = cooldown_until;
+        }
+    }
+    /**  Some spells do have a cooldown */
+    public static final class CommandRejectionReasonCooldown implements  CommandRejectionReason {
+        @JsonProperty(required = true)
+        private Tick cooldown_until;
+        @Override
+        @JsonIgnore
+        public CommandRejectionReasonType getType() { return CommandRejectionReasonType.Cooldown; }
+        public Tick getCooldownUntil() { return cooldown_until; }
+        public void setCooldownUntil(Tick v) { this.cooldown_until = v; }
+        /**  Some spells do have a cooldown */
+        public CommandRejectionReasonCooldown() { }
+        /**  Some spells do have a cooldown */
+        public CommandRejectionReasonCooldown(Tick cooldown_until) {
+            this.cooldown_until = cooldown_until;
+        }
+    }
+    /**  You run out of charges you need to wait `(power cost) * 10 / 2` ticks, or spell cooldown, whatever is longer */
+    public static final class CommandRejectionReasonOutOfChargesCooldown implements  CommandRejectionReason {
+        @JsonProperty(required = true)
+        private Tick cooldown_until;
+        @Override
+        @JsonIgnore
+        public CommandRejectionReasonType getType() { return CommandRejectionReasonType.OutOfChargesCooldown; }
+        public Tick getCooldownUntil() { return cooldown_until; }
+        public void setCooldownUntil(Tick v) { this.cooldown_until = v; }
+        /**  You run out of charges you need to wait `(power cost) * 10 / 2` ticks, or spell cooldown, whatever is longer */
+        public CommandRejectionReasonOutOfChargesCooldown() { }
+        /**  You run out of charges you need to wait `(power cost) * 10 / 2` ticks, or spell cooldown, whatever is longer */
+        public CommandRejectionReasonOutOfChargesCooldown(Tick cooldown_until) {
             this.cooldown_until = cooldown_until;
         }
     }
@@ -4831,9 +4866,17 @@ public class Types {
         @JsonInclude(JsonInclude.Include.NON_NULL)
         private CommandRejectionReasonCardRejected cardRejected;
         /**  You need to wait 10 ticks, after playing card, before playing another card */
-        @JsonProperty(value = "CastingTooOften")
+        @JsonProperty(value = "GlobalCooldown")
         @JsonInclude(JsonInclude.Include.NON_NULL)
-        private CommandRejectionReasonCastingTooOften castingTooOften;
+        private CommandRejectionReasonGlobalCooldown globalCooldown;
+        /**  Some spells do have a cooldown */
+        @JsonProperty(value = "Cooldown")
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        private CommandRejectionReasonCooldown cooldown;
+        /**  You run out of charges you need to wait `(power cost) * 10 / 2` ticks, or spell cooldown, whatever is longer */
+        @JsonProperty(value = "OutOfChargesCooldown")
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        private CommandRejectionReasonOutOfChargesCooldown outOfChargesCooldown;
         /**  Player did not have enough power to play the card or activate the ability */
         @JsonProperty(value = "NotEnoughPower")
         @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -4887,8 +4930,14 @@ public class Types {
             if (cardRejected != null) {
                 return cardRejected;
             }
-            else if (castingTooOften != null) {
-                return castingTooOften;
+            else if (globalCooldown != null) {
+                return globalCooldown;
+            }
+            else if (cooldown != null) {
+                return cooldown;
+            }
+            else if (outOfChargesCooldown != null) {
+                return outOfChargesCooldown;
             }
             else if (notEnoughPower != null) {
                 return notEnoughPower;
@@ -4937,8 +4986,14 @@ public class Types {
                 case CommandRejectionReasonType.CardRejected:
                     this.cardRejected = (CommandRejectionReasonCardRejected) v;
                     break;
-                case CommandRejectionReasonType.CastingTooOften:
-                    this.castingTooOften = (CommandRejectionReasonCastingTooOften) v;
+                case CommandRejectionReasonType.GlobalCooldown:
+                    this.globalCooldown = (CommandRejectionReasonGlobalCooldown) v;
+                    break;
+                case CommandRejectionReasonType.Cooldown:
+                    this.cooldown = (CommandRejectionReasonCooldown) v;
+                    break;
+                case CommandRejectionReasonType.OutOfChargesCooldown:
+                    this.outOfChargesCooldown = (CommandRejectionReasonOutOfChargesCooldown) v;
                     break;
                 case CommandRejectionReasonType.NotEnoughPower:
                     this.notEnoughPower = (CommandRejectionReasonNotEnoughPower) v;
@@ -4980,7 +5035,9 @@ public class Types {
             }
         }
         public CommandRejectionReasonCardRejected getCardRejected() { return cardRejected; }
-        public CommandRejectionReasonCastingTooOften getCastingTooOften() { return castingTooOften; }
+        public CommandRejectionReasonGlobalCooldown getGlobalCooldown() { return globalCooldown; }
+        public CommandRejectionReasonCooldown getCooldown() { return cooldown; }
+        public CommandRejectionReasonOutOfChargesCooldown getOutOfChargesCooldown() { return outOfChargesCooldown; }
         public CommandRejectionReasonNotEnoughPower getNotEnoughPower() { return notEnoughPower; }
         public CommandRejectionReasonSpellDoesNotExist getSpellDoesNotExist() { return spellDoesNotExist; }
         public CommandRejectionReasonEntityDoesNotExist getEntityDoesNotExist() { return entityDoesNotExist; }
