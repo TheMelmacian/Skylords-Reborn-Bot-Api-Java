@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 
 public class Types {
     public static class ApiVersion {
-        public static final long VERSION = 24;
+        public static final long VERSION = 25;
     }
 
     private Types() {
@@ -3410,21 +3410,45 @@ public class Types {
         }
     }
 
+    public enum BuildState {
+        /**  If you see this state, please report it with a replay, how you reached it, because it is a bug */
+        _Unexpected(0),
+        /**  When not build yet */
+        ReadyToBuild(1),
+        /**  When building (raising from the ground) */
+        InProgress(2),
+        /**  When functional */
+        Build(3),
+        /**  When being destroyed */
+        Destroying(4);
+
+        //----------------------------------------
+        public final int value;
+        BuildState(int value) { this.value = value; }
+        @JsonValue
+        public int getValue() { return value; }
+        public static Optional<Upgrade> fromValue(int value) {
+            return Arrays.stream(Upgrade.values())
+                    .filter(u -> u.value == value)
+                    .findFirst();
+        }
+    }
+
     public static class PowerSlot {
         @JsonProperty(required = true)
         private Entity entity;
         @JsonProperty(required = true)
         private int res_id;
         @JsonProperty(required = true)
-        private int state;
+        private BuildState state;
         @JsonProperty(required = true)
         private byte team;
         public Entity getEntity() { return entity; }
         public void setEntity(Entity v) { this.entity = v; }
         public int getResId() { return res_id; }
         public void setResId(int v) { this.res_id = v; }
-        public int getState() { return state; }
-        public void setState(int v) { this.state = v; }
+        public BuildState getState() { return state; }
+        public void setState(BuildState v) { this.state = v; }
         public byte getTeam() { return team; }
         public void setTeam(byte v) { this.team = v; }
         @Override
@@ -3443,7 +3467,7 @@ public class Types {
             return "{" + "entity: " + entity + ", res_id: " + res_id + ", state: " + state + ", team: " + team + "}";
         }
         public PowerSlot() { }
-        public PowerSlot(Entity entity, int res_id, int state, byte team) {
+        public PowerSlot(Entity entity, int res_id, BuildState state, byte team) {
             this.entity = entity;
             this.res_id = res_id;
             this.state = state;
@@ -3455,9 +3479,21 @@ public class Types {
         @JsonProperty(required = true)
         private Entity entity;
         @JsonProperty(required = true)
+        private int res_id;
+        @JsonProperty(required = true)
+        private BuildState state;
+        @JsonProperty(required = true)
+        private byte team;
+        @JsonProperty(required = true)
         private OrbColor color;
         public Entity getEntity() { return entity; }
         public void setEntity(Entity v) { this.entity = v; }
+        public int getResId() { return res_id; }
+        public void setResId(int v) { this.res_id = v; }
+        public BuildState getState() { return state; }
+        public void setState(BuildState v) { this.state = v; }
+        public byte getTeam() { return team; }
+        public void setTeam(byte v) { this.team = v; }
         public OrbColor getColor() { return color; }
         public void setColor(OrbColor v) { this.color = v; }
         @Override
@@ -3465,19 +3501,22 @@ public class Types {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             TokenSlot that = (TokenSlot) o;
-            return getEntity() == that.getEntity() && getColor() == that.getColor();
+            return getEntity() == that.getEntity() && getResId() == that.getResId() && getState() == that.getState() && getTeam() == that.getTeam() && getColor() == that.getColor();
         }
         @Override
         public int hashCode() {
-            return Objects.hash(getEntity(), getColor());
+            return Objects.hash(getEntity(), getResId(), getState(), getTeam(), getColor());
         }
         @Override
         public String toString() {
-            return "{" + "entity: " + entity + ", color: " + color + "}";
+            return "{" + "entity: " + entity + ", res_id: " + res_id + ", state: " + state + ", team: " + team + ", color: " + color + "}";
         }
         public TokenSlot() { }
-        public TokenSlot(Entity entity, OrbColor color) {
+        public TokenSlot(Entity entity, int res_id, BuildState state, byte team, OrbColor color) {
             this.entity = entity;
+            this.res_id = res_id;
+            this.state = state;
+            this.team = team;
             this.color = color;
         }
     }
@@ -5240,6 +5279,11 @@ public class Types {
 
     /**  Used in `/tick` endpoint, on every tick from 2 forward. */
     public static class GameState {
+        /**  Tells the bot which player it is supposed to control.
+         *  If bot is only spectating, this is the ID of player that it is spectating for
+         */
+        @JsonProperty(required = true)
+        private EntityId your_player_id;
         /**  Time since start of the match measured in ticks.
          *  One tick is 0.1 second = 100 milliseconds = (10 ticks per second)
          *  Each tick is 100 ms. 1 second is 10 ticks. 1 minute is 600 ticks.
@@ -5257,6 +5301,8 @@ public class Types {
         private PlayerEntity[] players;
         @JsonProperty(required = true)
         private MapEntities entities;
+        public EntityId getYourPlayerId() { return your_player_id; }
+        public void setYourPlayerId(EntityId v) { this.your_player_id = v; }
         public Tick getCurrentTick() { return current_tick; }
         public void setCurrentTick(Tick v) { this.current_tick = v; }
         public PlayerCommand[] getCommands() { return commands; }
@@ -5272,20 +5318,21 @@ public class Types {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             GameState that = (GameState) o;
-            return getCurrentTick() == that.getCurrentTick() && getCommands() == that.getCommands() && getRejectedCommands() == that.getRejectedCommands() && getPlayers() == that.getPlayers() && getEntities() == that.getEntities();
+            return getYourPlayerId() == that.getYourPlayerId() && getCurrentTick() == that.getCurrentTick() && getCommands() == that.getCommands() && getRejectedCommands() == that.getRejectedCommands() && getPlayers() == that.getPlayers() && getEntities() == that.getEntities();
         }
         @Override
         public int hashCode() {
-            return Objects.hash(getCurrentTick(), getCommands(), getRejectedCommands(), getPlayers(), getEntities());
+            return Objects.hash(getYourPlayerId(), getCurrentTick(), getCommands(), getRejectedCommands(), getPlayers(), getEntities());
         }
         @Override
         public String toString() {
-            return "{" + "current_tick: " + current_tick + ", commands: " + commands + ", rejected_commands: " + rejected_commands + ", players: " + players + ", entities: " + entities + "}";
+            return "{" + "your_player_id: " + your_player_id + ", current_tick: " + current_tick + ", commands: " + commands + ", rejected_commands: " + rejected_commands + ", players: " + players + ", entities: " + entities + "}";
         }
         /**  Used in `/tick` endpoint, on every tick from 2 forward. */
         public GameState() { }
         /**  Used in `/tick` endpoint, on every tick from 2 forward. */
-        public GameState(Tick current_tick, PlayerCommand[] commands, RejectedCommand[] rejected_commands, PlayerEntity[] players, MapEntities entities) {
+        public GameState(EntityId your_player_id, Tick current_tick, PlayerCommand[] commands, RejectedCommand[] rejected_commands, PlayerEntity[] players, MapEntities entities) {
+            this.your_player_id = your_player_id;
             this.current_tick = current_tick;
             this.commands = commands;
             this.rejected_commands = rejected_commands;
