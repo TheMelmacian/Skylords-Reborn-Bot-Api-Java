@@ -43,6 +43,7 @@ public interface Bot {
      * @param tick The state of the current match on the actual tick.
      * @return A list of commands the bot should perform.
      */
+    // TODO offer the option of `TickResponse`
     List<Command> onTick(GameState tick);
 
     /**

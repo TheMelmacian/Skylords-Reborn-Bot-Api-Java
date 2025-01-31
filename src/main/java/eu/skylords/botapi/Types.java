@@ -5341,6 +5341,47 @@ public class Types {
         }
     }
 
+    /**  Response on the `/tick` endpoint */
+    public static class TickResponse {
+        @JsonProperty(required = true)
+        private CommandHolder[] commands;
+        /**  Message, that will be shown, in the debug UI (first row) */
+        @JsonProperty(required = false)
+        private String state_string1;
+        /**  Message, that will be shown, in the debug UI (second row) */
+        @JsonProperty(required = false)
+        private String state_string2;
+        public CommandHolder[] getCommands() { return commands; }
+        public void setCommands(CommandHolder[] v) { this.commands = v; }
+        public String getStateString1() { return state_string1; }
+        public void setStateString1(String v) { this.state_string1 = v; }
+        public String getStateString2() { return state_string2; }
+        public void setStateString2(String v) { this.state_string2 = v; }
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            TickResponse that = (TickResponse) o;
+            return getCommands() == that.getCommands() && getStateString1() == that.getStateString1() && getStateString2() == that.getStateString2();
+        }
+        @Override
+        public int hashCode() {
+            return Objects.hash(getCommands(), getStateString1(), getStateString2());
+        }
+        @Override
+        public String toString() {
+            return "{" + "commands: " + commands + ", state_string1: " + state_string1 + ", state_string2: " + state_string2 + "}";
+        }
+        /**  Response on the `/tick` endpoint */
+        public TickResponse() { }
+        /**  Response on the `/tick` endpoint */
+        public TickResponse(CommandHolder[] commands, String state_string1, String state_string2) {
+            this.commands = commands;
+            this.state_string1 = state_string1;
+            this.state_string2 = state_string2;
+        }
+    }
+
     /**  Used in `/prepare` endpoint */
     public static class Prepare {
         /**  Name of deck, selected from `AiForMap` returned by `/hello` endpoint. */
